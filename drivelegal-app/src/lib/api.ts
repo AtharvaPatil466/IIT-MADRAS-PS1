@@ -113,10 +113,11 @@ export async function getRights(location: string, language: string) {
 
 export async function verifyFine(location: string, violation: string, amount_told: number) {
   await delay(800);
+  const actual = challanData[violation]?.fine_first || 1000;
   return {
-    is_correct: false,
-    actual_amount: 1000,
-    difference: amount_told - 1000
+    is_correct: amount_told <= actual,
+    actual_amount: actual,
+    difference: amount_told > actual ? amount_told - actual : 0
   };
 }
 
