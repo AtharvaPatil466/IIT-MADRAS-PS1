@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -m pytest tests/test_event_driven_core.py -v --tb=short)",
+      "Bash(python3 -m pytest tests/ -q --tb=line)",
+      "Bash(python3 -m pytest tests/test_event_driven_engine.py -v --tb=short)",
+      "Bash(awk -F'/' '{print $3}')",
+      "Bash(awk -F'/' '{print $4}')",
+      "Bash(python3 -c ' *)",
+      "Bash(python3 research/engine_reconciliation.py)",
+      "Bash(python3 research/engine_diff.py)",
+      "Bash(python3 research/score_diff.py)",
+      "Bash(python3 -m pytest tests/test_event_driven_core.py tests/test_event_driven_engine.py -q --tb=short)",
+      "Bash(python3 research/factor_study_engine_recon.py)",
+      "Bash(git add *)",
+      "Bash(git -c commit.gpgsign=false commit -m ' *)",
+      "Bash(python3 scripts/init_db.py)",
+      "Bash(python3 -c \"import sqlite3; c=sqlite3.connect\\('db/drivelegal.db'\\); print\\('\\\\n'.join\\(r[0] for r in c.execute\\(\\\\\"SELECT name FROM sqlite_master WHERE type='table' ORDER BY name\\\\\"\\)\\)\\)\")"
+    ],
+    "defaultMode": "bypassPermissions"
+  }
+}
