@@ -243,7 +243,7 @@ export default function CalculatorPage() {
           {/* Fine amount */}
           <div className="text-center mb-4">
             <p className="text-sm text-gray-500 mb-1">First Offence Fine</p>
-            <p className="text-4xl font-bold text-gray-900">
+            <p className="text-3xl md:text-4xl font-bold text-gray-900">
               {symbol}
               {result.fine_first.toLocaleString()}
             </p>

@@ -2,6 +2,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import Link from 'next/link'
 import { MapPin } from 'lucide-react'
+import Navigation from '@/components/Navigation'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -38,14 +39,7 @@ export default function RootLayout({
         </header>
 
         {/* Navigation links for easy access to routes */}
-        <nav className="bg-white border-b border-gray-200">
-          <div className="max-w-3xl mx-auto px-4 flex gap-4 py-2 text-sm">
-            <Link href="/" className="text-blue-600 hover:underline">Chat</Link>
-            <Link href="/calculator" className="text-blue-600 hover:underline">Calculator</Link>
-            <Link href="/rights" className="text-blue-600 hover:underline">Rights</Link>
-            <Link href="/verify" className="text-blue-600 hover:underline">Verify Scam</Link>
-          </div>
-        </nav>
+        <Navigation />
 
         <main className="flex-grow max-w-3xl w-full mx-auto px-4 py-8">
           {children}

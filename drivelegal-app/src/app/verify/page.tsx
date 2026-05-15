@@ -122,7 +122,7 @@ export default function VerifyPage() {
         }`}>
           {result.is_correct ? (
             <>
-              <h2 className="text-4xl font-black text-green-700 tracking-tight mb-2">✓ FAIR</h2>
+              <h2 className="text-3xl md:text-4xl font-black text-green-700 tracking-tight mb-2">✓ FAIR</h2>
               <p className="text-green-800 font-medium">The amount asked matches official records.</p>
               <div className="mt-4 pt-4 border-t border-green-200/50">
                 <p className="text-sm text-green-700">Official fine: ₹{result.actual_amount}</p>
@@ -130,7 +130,7 @@ export default function VerifyPage() {
             </>
           ) : (
             <>
-              <h2 className="text-4xl font-black text-red-700 tracking-tight mb-4">✗ OVERCHARGED</h2>
+              <h2 className="text-3xl md:text-4xl font-black text-red-700 tracking-tight mb-4">✗ OVERCHARGED</h2>
               
               <div className="space-y-1 mb-6">
                 <p className="text-gray-500 line-through">
