@@ -1,0 +1,51 @@
+export type Lang = "en" | "hi";
+
+export const STR = {
+  appName: { en: "DriveLegal", hi: "DriveLegal" },
+  tagline: {
+    en: "Know your fine. Know your rights.",
+    hi: "अपना जुर्माना जानें। अपने अधिकार जानें।",
+  },
+  navChat: { en: "Ask", hi: "पूछें" },
+  navCalc: { en: "Challan calculator", hi: "चालान कैलकुलेटर" },
+  navRights: { en: "Know your rights", hi: "अपने अधिकार" },
+  navVerify: { en: "Scam checker", hi: "धोखाधड़ी जाँच" },
+  send: { en: "Send", hi: "भेजें" },
+  thinking: { en: "Thinking…", hi: "सोच रहे हैं…" },
+  errorTitle: { en: "Something went wrong", hi: "कुछ गलत हो गया" },
+  citations: { en: "Citations", hi: "संदर्भ" },
+  country: { en: "Country", hi: "देश" },
+  state: { en: "State / region", hi: "राज्य / क्षेत्र" },
+  violation: { en: "Violation", hi: "उल्लंघन" },
+  vehicle: { en: "Vehicle type", hi: "वाहन प्रकार" },
+  repeat: { en: "Repeat offence", hi: "दोबारा अपराध" },
+  calculate: { en: "Calculate fine", hi: "जुर्माना निकालें" },
+  fineFirst: { en: "First offence", hi: "पहली बार" },
+  fineRepeat: { en: "Repeat offence", hi: "दोबारा अपराध" },
+  compoundable: { en: "Compoundable", hi: "समाधेय" },
+  nonCompoundable: { en: "Non-compoundable", hi: "असमाधेय" },
+  payNow: { en: "How to pay", hi: "भुगतान कैसे करें" },
+  location: { en: "Location", hi: "स्थान" },
+  documents: { en: "Documents you must carry", hi: "जरूरी दस्तावेज" },
+  canDemand: { en: "Police can", hi: "पुलिस कर सकती है" },
+  cannotDemand: { en: "Police cannot", hi: "पुलिस नहीं कर सकती" },
+  disputeProcess: { en: "How to dispute", hi: "विवाद कैसे करें" },
+  amountTold: { en: "Amount you were told", hi: "बताई गई राशि" },
+  check: { en: "Check", hi: "जाँचें" },
+  correct: { en: "Correct", hi: "सही" },
+  overcharged: { en: "Overcharged", hi: "अधिक चार्ज" },
+  undercharged: { en: "Undercharged", hi: "कम चार्ज" },
+  unknown: { en: "Unknown violation", hi: "अज्ञात उल्लंघन" },
+  actual: { en: "Actual amount", hi: "सही राशि" },
+  difference: { en: "Difference", hi: "अंतर" },
+  placeholderChat: {
+    en: "e.g. What's the fine for jumping a red light in Delhi?",
+    hi: "जैसे, दिल्ली में रेड लाइट तोड़ने पर जुर्माना क्या है?",
+  },
+  placeholderLocation: { en: "e.g. Mumbai, Delhi, London, Dubai", hi: "जैसे, मुंबई, दिल्ली, लंदन, दुबई" },
+  noData: { en: "No data found.", hi: "कोई डेटा नहीं मिला।" },
+  loading: { en: "Loading…", hi: "लोड हो रहा है…" },
+};
+
+export type StrKey = keyof typeof STR;
+export const t = (k: StrKey, lang: Lang) => STR[k][lang];

@@ -1,42 +1,27 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-});
+import type { Metadata } from "next";
+import { LangProvider } from "@/components/LangContext";
+import { Header } from "@/components/Header";
 
 export const metadata: Metadata = {
-  title: "DriveLegal",
-  description: "Indian traffic law assistant",
+  title: "DriveLegal — Know your fine. Know your rights.",
+  description: "AI-powered, location-aware traffic-law assistant.",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} antialiased`}>
-      <body className="min-h-screen">
-        <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
-          <div className="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">DL</span>
-              </div>
-              <h1 className="font-bold text-lg">DriveLegal</h1>
+    <html lang="en">
+      <body className="min-h-screen bg-paper text-ink">
+        <LangProvider>
+          <Header />
+          <main className="mx-auto max-w-5xl px-5 py-8">{children}</main>
+          <footer className="border-t border-line mt-12">
+            <div className="mx-auto max-w-5xl px-5 py-6 text-xs text-ink-faint flex flex-wrap justify-between gap-2">
+              <span>Road Safety Hackathon 2026 · CoERS / RBG Labs / IIT Madras</span>
+              <span>India · UK · UAE · USA</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span className="text-sm text-gray-600">Chennai, India</span>
-            </div>
-          </div>
-        </header>
-        <main className="max-w-3xl mx-auto px-4 py-6">
-          {children}
-        </main>
+          </footer>
+        </LangProvider>
       </body>
     </html>
   );

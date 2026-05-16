@@ -1,171 +1,165 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { Send, MessageCircle, AlertCircle } from "lucide-react";
-import { queryChat } from "@/lib/api";
+import { useEffect, useRef, useState } from "react";
+import { postQuery, type Citation } from "@/lib/api";
+import { useLang } from "@/components/LangContext";
+import { t } from "@/lib/i18n";
+import { Button, Card, ErrorBox, Spinner, inputCls } from "@/components/ui";
 
-interface Message {
-  id: string;
-  role: "user" | "bot";
+type Msg = {
+  role: "user" | "assistant";
   text: string;
-  citations?: string[];
-  error?: boolean;
-}
+  citations?: Citation[];
+  confidence?: "high" | "medium" | "low";
+};
 
-export default function Home() {
-  const [messages, setMessages] = useState<Message[]>([]);
+const SUGGESTIONS_EN = [
+  "What's the fine for not wearing a helmet in Mumbai?",
+  "Mobile phone while driving in the UK?",
+  "Red light fine in Dubai?",
+  "DUI penalty in California?",
+];
+const SUGGESTIONS_HI = [
+  "मुंबई में हेलमेट न पहनने का जुर्माना?",
+  "दिल्ली में रेड लाइट तोड़ने का जुर्माना?",
+  "बिना सीटबेल्ट पकड़े जाने पर?",
+  "दुबई में मोबाइल इस्तेमाल पर?",
+];
+
+export default function ChatPage() {
+  const { lang } = useLang();
+  const [msgs, setMsgs] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const messagesContainerRef = useRef<HTMLDivElement>(null);
-
-  const scrollToBottom = () => {
-    if (messagesContainerRef.current) {
-      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
-    }
-  };
+  const [loc, setLoc] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, isLoading]);
+    endRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [msgs, busy]);
 
-  const handleSend = async () => {
-    if (!input.trim() || isLoading) return;
-
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      role: "user",
-      text: input.trim(),
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
+  async function send(q: string) {
+    const question = q.trim();
+    if (!question || busy) return;
+    setErr(null);
     setInput("");
-    setIsLoading(true);
-
+    setMsgs((m) => [...m, { role: "user", text: question }]);
+    setBusy(true);
     try {
-      const response = await queryChat(userMessage.text, "en");
-      const botMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "bot",
-        text: response.answer,
-        citations: response.citations,
-      };
-      setMessages((prev) => [...prev, botMessage]);
-    } catch (error) {
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "bot",
-        text: "Something went wrong. Please try again.",
-        error: true,
-      };
-      setMessages((prev) => [...prev, errorMessage]);
+      const r = await postQuery(question, lang, loc || undefined);
+      setMsgs((m) => [
+        ...m,
+        { role: "assistant", text: r.answer, citations: r.citations, confidence: r.confidence },
+      ]);
+    } catch (e: unknown) {
+      setErr(e instanceof Error ? e.message : "Request failed");
     } finally {
-      setIsLoading(false);
+      setBusy(false);
     }
-  };
+  }
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  };
+  const suggestions = lang === "hi" ? SUGGESTIONS_HI : SUGGESTIONS_EN;
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)]">
-      <div
-        ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto pb-4"
-      >
-        {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center">
-            <MessageCircle className="w-12 h-12 text-gray-400 mb-4" />
-            <p className="text-gray-600 text-lg">
-              Ask anything about traffic laws, fines, or your rights
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex flex-col ${
-                  message.role === "user" ? "items-end" : "items-start"
-                }`}
-              >
-                <span className="text-xs text-gray-500 mb-1">
-                  {message.role === "user" ? "You" : "DriveLegal"}
-                </span>
+    <div className="space-y-5">
+      <header className="space-y-1">
+        <h1 className="font-serif text-3xl">{t("appName", lang)}</h1>
+        <p className="text-ink-muted">{t("tagline", lang)}</p>
+      </header>
+
+      <Card className="!p-0">
+        <div className="flex flex-col h-[60vh] min-h-[420px]">
+          <div className="flex-1 overflow-y-auto p-5 space-y-4">
+            {msgs.length === 0 && (
+              <div className="text-ink-muted text-sm space-y-3">
+                <p>
+                  {lang === "hi"
+                    ? "ट्रैफिक कानून के बारे में कुछ भी पूछें — जुर्माना, धारा, अधिकार।"
+                    : "Ask anything about traffic law — fines, sections, your rights."}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {suggestions.map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => send(s)}
+                      className="text-left text-xs rounded-md border border-line bg-paper px-3 py-1.5 hover:border-ink/30"
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {msgs.map((m, i) => (
+              <div key={i} className={m.role === "user" ? "flex justify-end" : ""}>
                 <div
-                  className={`max-w-[80%] rounded-lg p-4 ${
-                    message.role === "user"
-                      ? "bg-blue-600 text-white"
-                      : message.error
-                      ? "bg-white border-2 border-red-500 text-gray-800"
-                      : "bg-white border border-gray-200 text-gray-800"
-                  }`}
+                  className={
+                    "max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed " +
+                    (m.role === "user"
+                      ? "bg-ink text-paper rounded-br-md"
+                      : "bg-paper border border-line rounded-bl-md")
+                  }
                 >
-                  {message.error && (
-                    <div className="flex items-center gap-2 mb-2">
-                      <AlertCircle className="w-4 h-4 text-red-500" />
-                    </div>
-                  )}
-                  <p className="whitespace-pre-wrap">{message.text}</p>
-                  {message.citations && message.citations.length > 0 && (
-                    <div className="mt-3 pt-3 border-t border-gray-200">
-                      <p className="text-xs text-gray-500 mb-1">Citations:</p>
-                      <ul className="text-xs text-gray-600 list-disc list-inside">
-                        {message.citations.map((citation, idx) => (
-                          <li key={idx}>{citation}</li>
-                        ))}
-                      </ul>
+                  <div className="whitespace-pre-wrap">{m.text}</div>
+                  {m.citations && m.citations.length > 0 && (
+                    <div className="mt-2 pt-2 border-t border-line/80 text-xs text-ink-muted">
+                      <span className="uppercase tracking-wide text-[10px] mr-1">
+                        {t("citations", lang)}:
+                      </span>
+                      {m.citations.map((c, j) => (
+                        <span key={j} className="mr-2">
+                          [{c.section}]
+                        </span>
+                      ))}
                     </div>
                   )}
                 </div>
               </div>
             ))}
-            {isLoading && (
-              <div className="flex flex-col items-start">
-                <span className="text-xs text-gray-500 mb-1">DriveLegal</span>
-                <div className="bg-white border border-gray-200 rounded-lg p-4 max-w-[80%]">
-                  <div className="flex items-center gap-2">
-                    <div className="flex gap-1">
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" />
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse delay-100" />
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse delay-200" />
-                    </div>
-                    <span className="text-gray-600 text-sm">
-                      DriveLegal is thinking...
-                    </span>
-                  </div>
-                </div>
+
+            {busy && (
+              <div className="flex items-center gap-2 text-sm text-ink-muted">
+                <Spinner /> {t("thinking", lang)}
               </div>
             )}
-            <div ref={messagesEndRef} />
-          </div>
-        )}
-      </div>
 
-      <div className="bg-white border-t border-gray-200 p-4">
-        <div className="flex gap-3">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Ask about traffic laws..."
-            className="flex-1 bg-gray-100 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-600"
-            disabled={isLoading}
-          />
-          <button
-            onClick={handleSend}
-            disabled={!input.trim() || isLoading}
-            className="bg-blue-600 text-white rounded-lg px-4 py-3 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700 transition-colors"
-          >
-            <Send className="w-5 h-5" />
-          </button>
+            <div ref={endRef} />
+          </div>
+
+          <div className="border-t border-line p-3 bg-paper/50">
+            {err && (
+              <div className="mb-2">
+                <ErrorBox title={t("errorTitle", lang)} message={err} />
+              </div>
+            )}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                send(input);
+              }}
+              className="flex gap-2"
+            >
+              <input
+                value={loc}
+                onChange={(e) => setLoc(e.target.value)}
+                placeholder={lang === "hi" ? "स्थान (वैकल्पिक)" : "Location (optional)"}
+                className={inputCls + " max-w-[180px]"}
+              />
+              <input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder={t("placeholderChat", lang)}
+                className={inputCls + " flex-1"}
+              />
+              <Button type="submit" disabled={busy || !input.trim()}>
+                {busy ? <Spinner /> : t("send", lang)}
+              </Button>
+            </form>
+          </div>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

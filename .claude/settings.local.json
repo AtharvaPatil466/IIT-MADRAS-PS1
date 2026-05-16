@@ -15,7 +15,8 @@
       "Bash(git add *)",
       "Bash(git -c commit.gpgsign=false commit -m ' *)",
       "Bash(python3 scripts/init_db.py)",
-      "Bash(python3 -c \"import sqlite3; c=sqlite3.connect\\('db/drivelegal.db'\\); print\\('\\\\n'.join\\(r[0] for r in c.execute\\(\\\\\"SELECT name FROM sqlite_master WHERE type='table' ORDER BY name\\\\\"\\)\\)\\)\")"
+      "Bash(python3 -c \"import sqlite3; c=sqlite3.connect\\('db/drivelegal.db'\\); print\\('\\\\n'.join\\(r[0] for r in c.execute\\(\\\\\"SELECT name FROM sqlite_master WHERE type='table' ORDER BY name\\\\\"\\)\\)\\)\")",
+      "Bash(python3 -c \"import fastapi; print\\('fastapi', fastapi.__version__\\)\")"
     ],
     "defaultMode": "bypassPermissions"
   }
