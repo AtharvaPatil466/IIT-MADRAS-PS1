@@ -30,31 +30,34 @@ export default function App() {
 
             return <Ionicons name={iconName} size={size} color={color} />;
           },
-          tabBarActiveTintColor: '#2563eb', // blue-600
-          tabBarInactiveTintColor: '#9ca3af', // gray-400
+          tabBarActiveTintColor: '#2563eb',
+          tabBarInactiveTintColor: '#94a3b8',
           tabBarStyle: {
-            backgroundColor: '#ffffff',
-            borderTopColor: '#e5e7eb', // gray-200
+            backgroundColor: '#0b1326',
+            borderTopColor: 'rgba(255, 255, 255, 0.1)',
             paddingBottom: 5,
             height: 60,
           },
           tabBarLabelStyle: {
             fontSize: 12,
+            fontWeight: '600',
           },
           headerTitle: 'DriveLegal',
           headerStyle: {
-            backgroundColor: '#ffffff',
+            backgroundColor: '#0b1326',
+            borderBottomWidth: 1,
+            borderBottomColor: 'rgba(255, 255, 255, 0.1)',
           },
           headerTitleStyle: {
             fontWeight: 'bold',
-            color: '#111827', // gray-900
+            color: '#dae2fd',
           },
         })}
       >
-        <Tab.Screen name="Chat" component={ChatScreen} />
-        <Tab.Screen name="Calculator" component={CalculatorScreen} />
-        <Tab.Screen name="Rights" component={RightsScreen} />
-        <Tab.Screen name="Verify" component={VerifyScreen} />
+        <Tab.Screen name="Chat" component={ChatScreen} options={{ headerShown: false }} />
+        <Tab.Screen name="Calculator" component={CalculatorScreen} options={{ headerShown: false }} />
+        <Tab.Screen name="Rights" component={RightsScreen} options={{ headerShown: false }} />
+        <Tab.Screen name="Verify" component={VerifyScreen} options={{ headerShown: false }} />
       </Tab.Navigator>
     </NavigationContainer>
   );
