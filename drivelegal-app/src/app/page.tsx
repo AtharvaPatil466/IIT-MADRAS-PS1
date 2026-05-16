@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Send, MessageCircle, AlertCircle } from "lucide-react";
+import { Send, MessageCircle, AlertCircle, Gavel } from "lucide-react";
 import { queryChat } from "@/lib/api";
 
 interface Message {
@@ -16,10 +16,8 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom when messages change
   useEffect(() => {
     if (containerRef.current) {
       containerRef.current.scrollTop = containerRef.current.scrollHeight;
@@ -70,14 +68,17 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)] -mt-8 -mx-4 sm:-mx-4">
+    <div className="flex flex-col h-[calc(100vh-12rem)] -mt-8 -mx-4 sm:-mx-6 lg:-mx-8">
       {/* Message thread area */}
-      <div ref={containerRef} className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
+      <div ref={containerRef} className="flex-1 overflow-y-auto px-4 py-8 space-y-6">
         {messages.length === 0 && !isLoading && (
-          <div className="flex flex-col items-center justify-center h-full text-gray-400">
-            <MessageCircle className="w-10 h-10 mb-3" />
-            <p className="text-sm text-center">
-              Ask anything about traffic laws, fines, or your rights
+          <div className="flex flex-col items-center justify-center h-full text-gray-500 animate-in fade-in zoom-in duration-500">
+            <div className="w-20 h-20 bg-blue-500/10 rounded-full flex items-center justify-center mb-6 shadow-[0_0_40px_rgba(37,99,235,0.15)]">
+              <Gavel className="w-10 h-10 text-blue-500" />
+            </div>
+            <h2 className="text-xl font-bold text-gray-200 mb-2">Legal Assistant</h2>
+            <p className="text-sm text-center max-w-xs text-gray-400">
+              Ask anything about traffic laws, fines, or your legal rights on the road
             </p>
           </div>
         )}
@@ -85,31 +86,31 @@ export default function ChatPage() {
         {messages.map((msg) => (
           <div
             key={msg.id}
-            className={`flex flex-col ${msg.role === "user" ? "items-end" : "items-start"}`}
+            className={`flex flex-col ${msg.role === "user" ? "items-end" : "items-start"} message-enter`}
           >
-            <span className="text-xs text-gray-500 mb-1 px-1">
-              {msg.role === "user" ? "You" : "DriveLegal"}
+            <span className="text-[10px] uppercase tracking-widest font-bold text-gray-500 mb-1.5 px-2">
+              {msg.role === "user" ? "Citizen" : "DriveLegal AI"}
             </span>
 
             <div
-              className={`max-w-[80%] px-4 py-2.5 rounded-lg text-sm leading-relaxed ${
+              className={`max-w-[85%] px-5 py-3.5 rounded-2xl text-[15px] leading-relaxed shadow-lg ${
                 msg.role === "user"
-                  ? "bg-blue-600 text-white"
+                  ? "btn-primary rounded-tr-none"
                   : msg.error
-                    ? "bg-white border border-red-300 text-red-700"
-                    : "bg-white border border-gray-200 text-gray-800"
+                    ? "bg-red-500/10 border border-red-500/30 text-red-200 rounded-tl-none"
+                    : "glass-card rounded-tl-none border-white/10"
               }`}
             >
               {msg.error && (
-                <AlertCircle className="w-4 h-4 inline-block mr-1.5 -mt-0.5 text-red-500" />
+                <AlertCircle className="w-4 h-4 inline-block mr-2 -mt-0.5 text-red-400" />
               )}
               {msg.text}
 
               {msg.citations && msg.citations.length > 0 && (
-                <div className="mt-2 pt-2 border-t border-gray-100 text-xs text-gray-500">
+                <div className="mt-4 pt-3 border-t border-white/10 flex flex-wrap gap-2">
                   {msg.citations.map((cite, i) => (
-                    <span key={i} className="block">
-                      📄 {cite}
+                    <span key={i} className="inline-flex items-center px-2 py-0.5 rounded bg-blue-500/10 border border-blue-500/20 text-[10px] font-bold text-blue-400 uppercase tracking-tighter">
+                      § {cite}
                     </span>
                   ))}
                 </div>
@@ -120,39 +121,37 @@ export default function ChatPage() {
 
         {/* Loading state */}
         {isLoading && (
-          <div className="flex flex-col items-start">
-            <span className="text-xs text-gray-500 mb-1 px-1">DriveLegal</span>
-            <div className="max-w-[80%] px-4 py-2.5 rounded-lg text-sm bg-white border border-gray-200 text-gray-500 flex items-center gap-2">
-              <span className="flex gap-1">
-                <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-pulse" />
-                <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-pulse [animation-delay:0.2s]" />
-                <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-pulse [animation-delay:0.4s]" />
-              </span>
-              <span>DriveLegal is thinking...</span>
+          <div className="flex flex-col items-start message-enter">
+            <span className="text-[10px] uppercase tracking-widest font-bold text-gray-500 mb-1.5 px-2">DriveLegal AI</span>
+            <div className="glass-card px-5 py-3.5 rounded-2xl rounded-tl-none flex items-center gap-3">
+              <div className="flex gap-1.5">
+                <span className="w-1.5 h-1.5 bg-blue-500 rounded-full typing-dot" />
+                <span className="w-1.5 h-1.5 bg-blue-500 rounded-full typing-dot" />
+                <span className="w-1.5 h-1.5 bg-blue-500 rounded-full typing-dot" />
+              </div>
+              <span className="text-sm text-gray-400 font-medium italic">Analyzing law...</span>
             </div>
           </div>
         )}
-
-        <div ref={messagesEndRef} />
       </div>
 
       {/* Input area */}
-      <div className="bg-white border-t border-gray-200 px-4 py-3">
-        <div className="max-w-3xl mx-auto flex items-center gap-2">
+      <div className="p-4 bg-transparent backdrop-blur-sm border-t border-white/5">
+        <div className="max-w-3xl mx-auto relative group">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Ask about traffic laws..."
-            className="flex-1 bg-gray-100 text-gray-900 text-sm rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400"
+            placeholder="Describe your situation or ask about a law..."
+            className="w-full input-field px-6 py-4 pr-16 bg-[#060e20]/60 backdrop-blur-xl border-white/10 focus:border-blue-500/50 focus:ring-blue-500/20 transition-all placeholder-gray-500"
           />
           <button
             onClick={handleSend}
             disabled={!input.trim() || isLoading}
-            className="bg-blue-600 text-white p-2.5 rounded-lg hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="absolute right-2 top-1/2 -translate-y-1/2 btn-primary p-2.5 rounded-xl transition-all hover:scale-105 active:scale-95 disabled:opacity-30"
           >
-            <Send className="w-4 h-4" />
+            <Send className="w-5 h-5" />
           </button>
         </div>
       </div>

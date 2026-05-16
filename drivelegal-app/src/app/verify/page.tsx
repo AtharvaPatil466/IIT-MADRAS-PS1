@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, Loader2 } from "lucide-react";
+import { ChevronDown, Loader2, ShieldAlert, ShieldCheck, Search, AlertCircle, Info } from "lucide-react";
 import { verifyFine } from "@/lib/api";
 
 const violations = [
@@ -39,33 +39,42 @@ export default function VerifyPage() {
   const isFormValid = location.trim() && violation && amountTold.trim();
 
   return (
-    <div className="max-w-md mx-auto">
-      {/* Form Card */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Scam Checker</h1>
-        <p className="text-sm text-gray-500 mb-6">
-          Find out if the fine amount you were told matches official records.
+    <div className="max-w-xl mx-auto space-y-8 pb-16">
+      <div className="text-center space-y-3">
+        <h1 className="text-3xl font-black tracking-tight text-white flex items-center justify-center gap-3">
+          Scam Checker
+        </h1>
+        <p className="text-gray-400 text-sm max-w-sm mx-auto leading-relaxed">
+          Verify if the fine amount demanded by authorities aligns with the official legal schedule.
         </p>
+      </div>
 
-        <div className="space-y-4">
+      {/* Form Card */}
+      <div className="glass-card p-8 border-white/5 space-y-6 relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-32 h-32 bg-blue-500/5 blur-3xl -ml-16 -mt-16 pointer-events-none" />
+        
+        <div className="space-y-5">
           {/* Location */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Location</label>
-            <input
-              type="text"
-              value={location}
-              onChange={(e) => {
-                setLocation(e.target.value);
-                setResult(null);
-              }}
-              placeholder="e.g. Delhi"
-              className="w-full bg-gray-100 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-blue-500"
-            />
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 px-1">Enforcement Location</label>
+            <div className="relative group">
+              <input
+                type="text"
+                value={location}
+                onChange={(e) => {
+                  setLocation(e.target.value);
+                  setResult(null);
+                }}
+                placeholder="e.g. Delhi"
+                className="w-full input-field pl-12 pr-4 py-3.5 bg-[#060e20]/80 border-white/10 group-focus-within:border-blue-500/50"
+              />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-blue-500 transition-colors" />
+            </div>
           </div>
 
           {/* Violation Dropdown */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Violation</label>
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 px-1">Specific Infraction</label>
             <div className="relative">
               <select
                 value={violation}
@@ -73,22 +82,22 @@ export default function VerifyPage() {
                   setViolation(e.target.value);
                   setResult(null);
                 }}
-                className="w-full appearance-none bg-gray-100 border border-gray-200 rounded-lg px-4 py-2.5 pr-10 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full select-field px-4 py-3.5 bg-[#060e20]/80 border-white/10"
               >
-                <option value="">Select violation</option>
+                <option value="">Select violation type</option>
                 {violations.map((v) => (
                   <option key={v} value={v}>{v}</option>
                 ))}
               </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
             </div>
           </div>
 
           {/* Amount Asked */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Amount Asked</label>
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">₹</span>
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 px-1">Amount Demanded</label>
+            <div className="relative group">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold group-focus-within:text-blue-500">₹</span>
               <input
                 type="number"
                 value={amountTold}
@@ -96,8 +105,8 @@ export default function VerifyPage() {
                   setAmountTold(e.target.value);
                   setResult(null);
                 }}
-                placeholder="Amount cop asked for"
-                className="w-full bg-gray-100 border border-gray-200 rounded-lg pl-8 pr-4 py-2.5 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Enter amount asked"
+                className="w-full input-field pl-10 pr-4 py-3.5 bg-[#060e20]/80 border-white/10 group-focus-within:border-blue-500/50"
               />
             </div>
           </div>
@@ -105,50 +114,98 @@ export default function VerifyPage() {
           <button
             onClick={handleVerify}
             disabled={!isFormValid || isLoading}
-            className="w-full mt-2 bg-blue-600 text-white font-medium text-sm rounded-lg py-3 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+            className="w-full btn-primary py-4 text-sm tracking-widest uppercase font-black flex items-center justify-center gap-3 active:scale-[0.99] transition-transform"
           >
-            {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-            Check if Fair
+            {isLoading ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <ShieldCheck className="w-5 h-5" />
+            )}
+            {isLoading ? "Verifying Record..." : "Check Legal Validity"}
           </button>
         </div>
       </div>
 
-      {/* Result Card */}
+      {/* Result Section */}
       {result && (
-        <div className={`mt-6 rounded-xl border p-8 text-center animate-in fade-in slide-in-from-bottom-4 duration-300 ${
-          result.is_correct 
-            ? "bg-green-50/50 border-green-200" 
-            : "bg-red-50/50 border-red-200 shadow-sm"
-        }`}>
+        <div className="result-enter">
           {result.is_correct ? (
-            <>
-              <h2 className="text-3xl md:text-4xl font-black text-green-700 tracking-tight mb-2">✓ FAIR</h2>
-              <p className="text-green-800 font-medium">The amount asked matches official records.</p>
-              <div className="mt-4 pt-4 border-t border-green-200/50">
-                <p className="text-sm text-green-700">Official fine: ₹{result.actual_amount}</p>
+            <div className="glass-card p-8 border-emerald-500/20 bg-emerald-500/[0.02] text-center space-y-4">
+              <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto shadow-[0_0_30px_rgba(16,185,129,0.1)]">
+                <ShieldCheck className="w-8 h-8 text-emerald-500" />
               </div>
-            </>
+              <div className="space-y-1">
+                <h2 className="text-3xl font-black text-emerald-500 tracking-tighter">LEGAL & FAIR</h2>
+                <p className="text-gray-400 text-sm font-medium">The demanded amount matches official legal schedules.</p>
+              </div>
+              <div className="pt-4 border-t border-emerald-500/10">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500/5 text-emerald-400 text-sm font-bold border border-emerald-500/10">
+                  Official Fine: ₹{result.actual_amount.toLocaleString()}
+                </div>
+              </div>
+            </div>
           ) : (
-            <>
-              <h2 className="text-3xl md:text-4xl font-black text-red-700 tracking-tight mb-4">✗ OVERCHARGED</h2>
+            <div className="glass-card p-8 border-red-500/30 bg-red-500/[0.02] text-center space-y-6 shadow-[0_20px_60px_rgba(239,68,68,0.1)]">
+              <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto shadow-[0_0_30px_rgba(239,68,68,0.15)]">
+                <ShieldAlert className="w-8 h-8 text-red-500" />
+              </div>
               
-              <div className="space-y-1 mb-6">
-                <p className="text-gray-500 line-through">
-                  You were told: ₹{amountTold}
-                </p>
-                <p className="text-2xl font-bold text-gray-900">
-                  Actual fine: ₹{result.actual_amount}
-                </p>
-                <p className="text-lg font-bold text-red-600">
-                  Difference: ₹{result.difference}
-                </p>
+              <div className="space-y-1">
+                <h2 className="text-3xl font-black text-red-500 tracking-tighter">OVERCHARGED</h2>
+                <p className="text-red-400/60 text-sm font-medium">Potential non-compliance with official fine schedules detected.</p>
               </div>
 
-              <div className="bg-red-100/50 rounded-lg p-4 text-sm text-red-800">
-                <p className="font-medium">You may have been scammed.</p>
-                <p className="mt-1 opacity-90">Note the officer&apos;s ID and file a complaint via the official traffic portal.</p>
+              <div className="flex items-center justify-center gap-6 py-4">
+                <div className="text-center">
+                  <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">Asked</p>
+                  <p className="text-lg font-bold text-gray-400 line-through decoration-red-500/50">₹{Number(amountTold).toLocaleString()}</p>
+                </div>
+                <div className="w-px h-8 bg-white/5" />
+                <div className="text-center">
+                  <p className="text-[10px] text-blue-500 uppercase tracking-widest font-bold mb-1">Legal Limit</p>
+                  <p className="text-2xl font-black text-white">₹{result.actual_amount.toLocaleString()}</p>
+                </div>
+                <div className="w-px h-8 bg-white/5" />
+                <div className="text-center">
+                  <p className="text-[10px] text-red-500 uppercase tracking-widest font-bold mb-1">Excess</p>
+                  <p className="text-lg font-bold text-red-500">₹{result.difference.toLocaleString()}</p>
+                </div>
               </div>
-            </>
+
+              <div className="bg-red-500/5 border border-red-500/20 rounded-2xl p-6 text-left space-y-4">
+                <div className="flex items-center gap-3 text-red-400 font-bold text-sm">
+                  <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                  Legal Advice
+                </div>
+                <div className="space-y-3">
+                  <div className="flex gap-3">
+                    <div className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 flex-shrink-0" />
+                    <p className="text-xs text-red-200/60 leading-relaxed">Do not pay the excess amount on the spot. Request a formal challan or e-challan.</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 flex-shrink-0" />
+                    <p className="text-xs text-red-200/60 leading-relaxed">Note the officer&apos;s name, buckle number, or station details for documentation.</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 flex-shrink-0" />
+                    <p className="text-xs text-red-200/60 leading-relaxed">You have the right to contest any discrepancy in a traffic court or portal.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                 <button className="flex-1 py-3 px-4 rounded-xl bg-white/5 border border-white/10 text-xs font-bold text-gray-300 hover:bg-white/10 transition-colors flex items-center justify-center gap-2">
+                    <Info className="w-4 h-4 opacity-50" />
+                    File Complaint
+                 </button>
+                 <button 
+                  onClick={() => setResult(null)}
+                  className="flex-1 py-3 px-4 rounded-xl bg-red-500/10 text-red-500 text-xs font-bold border border-red-500/20 hover:bg-red-500/20 transition-colors"
+                 >
+                    Check New Amount
+                 </button>
+              </div>
+            </div>
           )}
         </div>
       )}

@@ -1,9 +1,187 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  body {
-    @apply bg-white text-gray-900;
-  }
+:root {
+  /* Design system tokens from Stitch: Premium Jurisprudence */
+  --background: #0b1326;
+  --surface: #0b1326;
+  --surface-container-low: #131b2e;
+  --surface-container: #171f33;
+  --surface-container-high: #222a3d;
+  --surface-container-highest: #2d3449;
+  --surface-bright: #31394d;
+
+  --on-background: #dae2fd;
+  --on-surface: #dae2fd;
+  --on-surface-variant: #c3c6d7;
+
+  --primary: #b4c5ff;
+  --primary-container: #2563eb;
+  --on-primary: #002a78;
+  --on-primary-container: #eeefff;
+
+  --secondary: #adc6ff;
+  --secondary-container: #0566d9;
+
+  --outline: #8d90a0;
+  --outline-variant: #434655;
+
+  --error: #ffb4ab;
+  --error-container: #93000a;
+
+  --tertiary: #ffb596;
+  --tertiary-container: #bc4800;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--background);
+  color: var(--on-background);
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--background);
+  min-height: 100vh;
+}
+
+/* Glassmorphism card */
+.glass-card {
+  background: rgba(23, 31, 51, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1rem;
+  box-shadow: 0 4px 24px rgba(37, 99, 235, 0.08);
+}
+
+/* Gradient button */
+.btn-primary {
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  color: white;
+  border: none;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 0 16px rgba(37, 99, 235, 0.3);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #1d4ed8, #2563eb);
+  box-shadow: 0 0 24px rgba(37, 99, 235, 0.5);
+  transform: translateY(-1px);
+}
+
+.btn-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Input field */
+.input-field {
+  background: rgba(6, 14, 32, 0.8);
+  border: 1px solid var(--outline-variant);
+  border-radius: 0.75rem;
+  color: var(--on-surface);
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25);
+}
+
+.input-field::placeholder {
+  color: var(--outline);
+}
+
+/* Select dropdown */
+.select-field {
+  background: rgba(6, 14, 32, 0.8);
+  border: 1px solid var(--outline-variant);
+  border-radius: 0.75rem;
+  color: var(--on-surface);
+  font-size: 0.875rem;
+  appearance: none;
+  transition: all 0.2s ease;
+}
+
+.select-field:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25);
+}
+
+.select-field:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--outline-variant);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--outline);
+}
+
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Ambient glow animation for typing dots */
+@keyframes pulse-dot {
+  0%, 60%, 100% { opacity: 0.3; transform: scale(0.85); }
+  30% { opacity: 1; transform: scale(1); }
+}
+
+.typing-dot:nth-child(1) { animation: pulse-dot 1.2s ease infinite 0s; }
+.typing-dot:nth-child(2) { animation: pulse-dot 1.2s ease infinite 0.2s; }
+.typing-dot:nth-child(3) { animation: pulse-dot 1.2s ease infinite 0.4s; }
+
+/* Smooth fade-in for messages */
+@keyframes fade-slide-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.message-enter {
+  animation: fade-slide-up 0.25s ease forwards;
+}
+
+/* Result card entrance */
+@keyframes result-in {
+  from { opacity: 0; transform: translateY(16px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.result-enter {
+  animation: result-in 0.3s ease forwards;
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { ChevronDown, Loader2, RotateCcw, ExternalLink } from "lucide-react";
+import { ChevronDown, Loader2, RotateCcw, ExternalLink, Calculator, ShieldCheck } from "lucide-react";
 import { getViolations, calculateChallan } from "@/lib/api";
 import type { Violation, ChallanResult } from "@/lib/api";
 
@@ -26,13 +26,13 @@ const currencySymbol: Record<string, string> = {
 function severityColor(severity: string) {
   switch (severity) {
     case "Minor":
-      return "bg-yellow-100 text-yellow-800";
+      return "bg-yellow-500/10 text-yellow-500 border-yellow-500/20";
     case "Serious":
-      return "bg-orange-100 text-orange-800";
+      return "bg-orange-500/10 text-orange-500 border-orange-500/20";
     case "Criminal":
-      return "bg-red-100 text-red-800";
+      return "bg-red-500/10 text-red-500 border-red-500/20";
     default:
-      return "bg-gray-100 text-gray-800";
+      return "bg-gray-500/10 text-gray-400 border-gray-500/20";
   }
 }
 
@@ -48,9 +48,7 @@ export default function CalculatorPage() {
   const [result, setResult] = useState<ChallanResult | null>(null);
 
   const resultRef = useRef<HTMLDivElement>(null);
-  const formRef = useRef<HTMLDivElement>(null);
 
-  // Fetch violations when country + state are selected
   useEffect(() => {
     if (selectedCountry && selectedState) {
       setIsLoadingViolations(true);
@@ -64,7 +62,6 @@ export default function CalculatorPage() {
     }
   }, [selectedCountry, selectedState]);
 
-  // Reset state when country changes
   useEffect(() => {
     setSelectedState("");
     setSelectedViolation("");
@@ -73,7 +70,6 @@ export default function CalculatorPage() {
     setResult(null);
   }, [selectedCountry]);
 
-  // Filter violations by selected vehicle type
   const filteredViolations = violationsList.filter(
     (v) =>
       !selectedVehicle ||
@@ -94,7 +90,6 @@ export default function CalculatorPage() {
         selectedVehicle
       );
       setResult(res);
-      // Scroll to result after render
       setTimeout(() => {
         resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       }, 100);
@@ -103,74 +98,62 @@ export default function CalculatorPage() {
     }
   };
 
-  const handleReset = () => {
-    setSelectedCountry("");
-    setSelectedState("");
-    setSelectedViolation("");
-    setSelectedVehicle("");
-    setViolationsList([]);
-    setResult(null);
-    setTimeout(() => {
-      formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 100);
-  };
-
   const symbol = currencySymbol[selectedCountry] || "₹";
 
   return (
-    <div className="max-w-lg mx-auto">
-      {/* Form Card */}
-      <div ref={formRef} className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">Challan Calculator</h1>
-        <p className="text-sm text-gray-500 mb-6">
-          Select your location and violation to see the exact fine amount.
+    <div className="max-w-2xl mx-auto space-y-8 pb-12">
+      <div className="text-center space-y-2">
+        <h1 className="text-3xl font-black tracking-tight text-white">Challan Calculator</h1>
+        <p className="text-gray-400 text-sm max-w-md mx-auto leading-relaxed">
+          Get precise legal fine estimates based on regional motor vehicle acts and current regulations.
         </p>
+      </div>
 
-        <div className="space-y-4">
+      {/* Form Card */}
+      <div className="glass-card p-8 border-white/5 relative overflow-hidden group">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 blur-3xl -mr-16 -mt-16 group-hover:bg-blue-500/10 transition-all duration-700" />
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Country */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Country</label>
+          <div className="space-y-2">
+            <label className="text-xs font-black uppercase tracking-widest text-gray-500 px-1">Jurisdiction</label>
             <div className="relative">
               <select
                 value={selectedCountry}
                 onChange={(e) => setSelectedCountry(e.target.value)}
-                className="w-full appearance-none bg-gray-100 border border-gray-200 rounded-lg px-4 py-2.5 pr-10 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full select-field px-4 py-3 bg-[#060e20]/80 border-white/10"
               >
                 <option value="">Select country</option>
                 {countries.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
+                  <option key={c} value={c}>{c}</option>
                 ))}
               </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
             </div>
           </div>
 
           {/* State/Region */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">State / Region</label>
+          <div className="space-y-2">
+            <label className="text-xs font-black uppercase tracking-widest text-gray-500 px-1">Region / State</label>
             <div className="relative">
               <select
                 value={selectedState}
                 onChange={(e) => setSelectedState(e.target.value)}
                 disabled={!selectedCountry}
-                className="w-full appearance-none bg-gray-100 border border-gray-200 rounded-lg px-4 py-2.5 pr-10 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full select-field px-4 py-3 bg-[#060e20]/80 border-white/10 disabled:opacity-20"
               >
-                <option value="">Select state / region</option>
+                <option value="">Select region</option>
                 {(statesByCountry[selectedCountry] || []).map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
+                  <option key={s} value={s}>{s}</option>
                 ))}
               </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
             </div>
           </div>
 
           {/* Vehicle Type */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Vehicle Type</label>
+          <div className="space-y-2">
+            <label className="text-xs font-black uppercase tracking-widest text-gray-500 px-1">Vehicle Classification</label>
             <div className="relative">
               <select
                 value={selectedVehicle}
@@ -179,27 +162,25 @@ export default function CalculatorPage() {
                   setSelectedViolation("");
                   setResult(null);
                 }}
-                className="w-full appearance-none bg-gray-100 border border-gray-200 rounded-lg px-4 py-2.5 pr-10 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full select-field px-4 py-3 bg-[#060e20]/80 border-white/10"
               >
-                <option value="">Select vehicle type</option>
+                <option value="">Select type</option>
                 {vehicleTypes.map((v) => (
-                  <option key={v} value={v}>
-                    {v}
-                  </option>
+                  <option key={v} value={v}>{v}</option>
                 ))}
               </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
             </div>
           </div>
 
           {/* Violation */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Violation</label>
+          <div className="space-y-2">
+            <label className="text-xs font-black uppercase tracking-widest text-gray-500 px-1">Traffic Violation</label>
             <div className="relative">
               {isLoadingViolations ? (
-                <div className="w-full bg-gray-100 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-400 flex items-center gap-2">
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Loading violations...
+                <div className="w-full bg-[#060e20]/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-gray-500 flex items-center gap-3">
+                  <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
+                  Loading statutes...
                 </div>
               ) : (
                 <>
@@ -210,96 +191,99 @@ export default function CalculatorPage() {
                       setResult(null);
                     }}
                     disabled={!selectedCountry || !selectedState}
-                    className="w-full appearance-none bg-gray-100 border border-gray-200 rounded-lg px-4 py-2.5 pr-10 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full select-field px-4 py-3 bg-[#060e20]/80 border-white/10 disabled:opacity-20"
                   >
                     <option value="">Select violation</option>
                     {filteredViolations.map((v) => (
-                      <option key={v.code} value={v.name}>
-                        {v.name}
-                      </option>
+                      <option key={v.code} value={v.name}>{v.name}</option>
                     ))}
                   </select>
-                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
                 </>
               )}
             </div>
           </div>
-
-          {/* Submit */}
-          <button
-            onClick={handleCalculate}
-            disabled={!canSubmit}
-            className="w-full bg-blue-600 text-white font-medium text-sm rounded-lg py-2.5 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-          >
-            {isCalculating && <Loader2 className="w-4 h-4 animate-spin" />}
-            {isCalculating ? "Calculating..." : "Calculate Fine"}
-          </button>
         </div>
+
+        <button
+          onClick={handleCalculate}
+          disabled={!canSubmit}
+          className="w-full mt-8 btn-primary py-4 text-base tracking-tight flex items-center justify-center gap-3 active:scale-[0.99] transition-transform"
+        >
+          {isCalculating ? (
+            <Loader2 className="w-5 h-5 animate-spin" />
+          ) : (
+            <Calculator className="w-5 h-5" />
+          )}
+          {isCalculating ? "Consulting Statutes..." : "Calculate Legal Fine"}
+        </button>
       </div>
 
-      {/* Results Card */}
+      {/* Results Section */}
       {result && (
-        <div ref={resultRef} className="mt-6 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          {/* Fine amount */}
-          <div className="text-center mb-4">
-            <p className="text-sm text-gray-500 mb-1">First Offence Fine</p>
-            <p className="text-3xl md:text-4xl font-bold text-gray-900">
-              {symbol}
-              {result.fine_first.toLocaleString()}
-            </p>
-            <p className="text-sm text-gray-500 mt-1">
-              Repeat offence: {symbol}
-              {result.fine_repeat.toLocaleString()}
-            </p>
+        <div ref={resultRef} className="result-enter space-y-6">
+          <div className="glass-card p-8 border-blue-500/20 bg-blue-500/[0.02] shadow-[0_20px_50px_rgba(37,99,235,0.1)]">
+            <div className="flex flex-col items-center text-center">
+              <div className="w-16 h-16 bg-blue-500/10 rounded-full flex items-center justify-center mb-4">
+                <ShieldCheck className="w-8 h-8 text-blue-500" />
+              </div>
+              <h3 className="text-xs font-black uppercase tracking-[0.2em] text-blue-500/70 mb-2">First Offence Liability</h3>
+              <div className="flex items-baseline gap-1 text-5xl font-black text-white mb-2">
+                <span className="text-2xl text-blue-500 opacity-70">{symbol}</span>
+                {result.fine_first.toLocaleString()}
+              </div>
+              <p className="text-sm text-gray-500 font-medium italic">
+                Subsequent offence: {symbol}{result.fine_repeat.toLocaleString()}
+              </p>
+
+              <div className="w-full grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8 pt-8 border-t border-white/5">
+                <div className="flex flex-col items-center gap-1">
+                  <span className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">Statute</span>
+                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                    MV Act {result.mv_section}
+                  </span>
+                </div>
+                <div className="flex flex-col items-center gap-1">
+                  <span className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">Settlement</span>
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold border ${
+                    result.compoundable 
+                      ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" 
+                      : "bg-red-500/10 text-red-500 border-red-500/20"
+                  }`}>
+                    {result.compoundable ? "On-Spot" : "Court Appearance"}
+                  </span>
+                </div>
+                <div className="flex flex-col items-center gap-1">
+                  <span className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">Severity</span>
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold border ${severityColor(result.severity)}`}>
+                    {result.severity}
+                  </span>
+                </div>
+              </div>
+
+              <div className="mt-8 w-full flex flex-col sm:flex-row gap-4">
+                <a
+                  href={result.how_to_pay}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-white/5 border border-white/10 text-sm font-bold text-white hover:bg-white/10 transition-colors"
+                >
+                  Legal Payment Portal
+                  <ExternalLink className="w-4 h-4 opacity-50" />
+                </a>
+                <button
+                  onClick={() => {
+                    setResult(null);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="px-6 py-3.5 rounded-xl bg-blue-500/10 text-blue-500 text-sm font-bold flex items-center justify-center gap-2 hover:bg-blue-500/20 transition-colors"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  New Calculation
+                </button>
+              </div>
+            </div>
           </div>
-
-          {/* Badges row */}
-          <div className="flex flex-wrap items-center justify-center gap-2 mt-4">
-            {/* Law section */}
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
-              MV Act {result.mv_section}
-            </span>
-
-            {/* Compoundable badge */}
-            {result.compoundable ? (
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                Compoundable — Pay on spot
-              </span>
-            ) : (
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                Non-Compoundable — Court required
-              </span>
-            )}
-
-            {/* Severity tag */}
-            <span
-              className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${severityColor(result.severity)}`}
-            >
-              {result.severity}
-            </span>
-          </div>
-
-          {/* How to pay */}
-          <div className="mt-5 text-center">
-            <a
-              href={result.how_to_pay}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-sm text-blue-600 underline hover:text-blue-800"
-            >
-              Pay on Parivahan
-              <ExternalLink className="w-3.5 h-3.5" />
-            </a>
-          </div>
-
-          {/* Reset button */}
-          <button
-            onClick={handleReset}
-            className="mt-5 w-full flex items-center justify-center gap-2 text-sm text-gray-600 hover:text-gray-900 py-2 border border-gray-200 rounded-lg transition-colors"
-          >
-            <RotateCcw className="w-4 h-4" />
-            Check another fine
-          </button>
         </div>
       )}
     </div>

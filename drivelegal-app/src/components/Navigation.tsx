@@ -14,19 +14,19 @@ export default function Navigation() {
   ];
 
   return (
-    <nav className="bg-white border-b border-gray-200 sticky top-16 z-40">
+    <nav className="sticky top-16 z-40 bg-[rgba(11,19,38,0.7)] backdrop-blur-md border-b border-white/5">
       <div className="max-w-3xl mx-auto px-4">
-        <ul className="flex items-center gap-6 overflow-x-auto no-scrollbar">
+        <ul className="flex items-center gap-8 overflow-x-auto no-scrollbar">
           {navLinks.map((link) => {
             const isActive = pathname === link.path;
             return (
               <li key={link.path} className="flex-shrink-0">
                 <Link
                   href={link.path}
-                  className={`block py-3 text-sm font-medium border-b-2 transition-colors ${
+                  className={`block py-4 text-sm font-semibold transition-all duration-200 border-b-2 ${
                     isActive
-                      ? "border-blue-600 text-blue-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700"
+                      ? "border-[#2563eb] text-[#2563eb] shadow-[0_4px_12px_rgba(37,99,235,0.2)]"
+                      : "border-transparent text-gray-400 hover:text-gray-200"
                   }`}
                 >
                   {link.name}
