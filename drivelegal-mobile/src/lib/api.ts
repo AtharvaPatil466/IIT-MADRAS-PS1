@@ -1,142 +1,154 @@
-const USE_MOCK = true;
-const API_BASE = "http://localhost:8000";
+// Physical phones can't reach localhost — set EXPO_PUBLIC_API_BASE to your machine's LAN IP.
+const API_BASE = process.env.EXPO_PUBLIC_API_BASE ?? "http://localhost:8000";
 
-// Utility function to simulate network delay
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+// ── Types ──────────────────────────────────────────────────────────────────
 
-export async function queryChat(question: string, language: string = "en") {
-  if (!USE_MOCK) {
-    const res = await fetch(`${API_BASE}/api/query`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question, language })
-    });
-    if (!res.ok) throw new Error("API failed");
-    return res.json();
-  }
-
-  await delay(800);
-  return {
-    answer: "Based on the Motor Vehicles Act, 1988, driving without a helmet is a punishable offence under Section 129.",
-    citations: ["Motor Vehicles Act, 1988, Section 129"]
-  };
+export interface LocationInfo {
+  city: string;
+  state: string;
+  country: string;
 }
 
 export interface ChallanResult {
+  location: LocationInfo;
+  violation_code: string;
+  violation_name: string;
+  vehicle_type: string;
   fine_first: number;
   fine_repeat: number;
-  mv_section: string;
+  suspension_days: number | null;
+  currency: string;
+  section_reference: string;
   compoundable: boolean;
   severity: string;
   how_to_pay: string;
+  summary: string;
 }
 
-const challanData: Record<string, ChallanResult> = {
-  "Driving without Helmet": { fine_first: 1000, fine_repeat: 1500, mv_section: "Section 129", compoundable: true, severity: "Minor", how_to_pay: "https://parivahan.gov.in" },
-  "Over-speeding": { fine_first: 2000, fine_repeat: 4000, mv_section: "Section 183", compoundable: true, severity: "Serious", how_to_pay: "https://parivahan.gov.in" },
-  "Drunk Driving": { fine_first: 10000, fine_repeat: 15000, mv_section: "Section 185", compoundable: false, severity: "Criminal", how_to_pay: "https://parivahan.gov.in" },
-  "Jumping Red Light": { fine_first: 1000, fine_repeat: 5000, mv_section: "Section 119/177", compoundable: true, severity: "Serious", how_to_pay: "https://parivahan.gov.in" },
-  "Driving without Seatbelt": { fine_first: 1000, fine_repeat: 1500, mv_section: "Section 138(3)", compoundable: true, severity: "Minor", how_to_pay: "https://parivahan.gov.in" },
-  "Using Mobile while Driving": { fine_first: 5000, fine_repeat: 10000, mv_section: "Section 184", compoundable: true, severity: "Serious", how_to_pay: "https://parivahan.gov.in" },
-  "No Valid Insurance": { fine_first: 2000, fine_repeat: 4000, mv_section: "Section 196", compoundable: false, severity: "Serious", how_to_pay: "https://parivahan.gov.in" },
-  "Overloading": { fine_first: 2000, fine_repeat: 5000, mv_section: "Section 194", compoundable: true, severity: "Serious", how_to_pay: "https://parivahan.gov.in" },
-};
-
-export async function calculateChallan(location: string, violation: string, vehicle_type: string): Promise<ChallanResult> {
-  if (!USE_MOCK) {
-    const res = await fetch(`${API_BASE}/api/calculate`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ location, violation, vehicle_type })
-    });
-    if (!res.ok) throw new Error("API failed");
-    return res.json();
-  }
-
-  await delay(800);
-  const data = challanData[violation];
-  if (data) return data;
-  return {
-    fine_first: 1000,
-    fine_repeat: 1500,
-    mv_section: "Section 129",
-    compoundable: true,
-    severity: "Minor",
-    how_to_pay: "https://parivahan.gov.in"
-  };
+export interface Citation {
+  section: string;
+  source: string;
 }
 
-export async function getRights(location: string, language: string = "en") {
-  if (!USE_MOCK) {
-    const res = await fetch(`${API_BASE}/api/rights`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ location, language })
-    });
-    if (!res.ok) throw new Error("API failed");
-    return res.json();
-  }
-
-  await delay(800);
-  return {
-    documents_required: ["Driving License", "Registration Certificate (RC)", "Insurance", "PUC Certificate"],
-    cop_powers: ["Can demand to see documents", "Can issue challan for visible violations", "Can impound vehicle if RC/Insurance is missing"],
-    cop_cannot_demand: ["Cannot seize original documents without a receipt", "Cannot physically harass or abuse"],
-    dispute_steps: ["Do not argue on the spot", "Pay under protest if necessary", "Contest the challan in a virtual traffic court"],
-    payment_link: "https://echallan.parivahan.gov.in/index/accused-challan"
-  };
+export interface SourceDocument {
+  title: string;
+  snippet: string;
+  url: string | null;
 }
 
-export async function verifyFine(location: string, violation: string, amount_told: number) {
-  if (!USE_MOCK) {
-    const res = await fetch(`${API_BASE}/api/verify`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ location, violation, amount_told })
-    });
-    if (!res.ok) throw new Error("API failed");
-    return res.json();
-  }
-
-  await delay(800);
-  const actual = challanData[violation]?.fine_first || 1000;
-  return {
-    is_correct: amount_told <= actual,
-    actual_amount: actual,
-    difference: amount_told > actual ? amount_told - actual : 0
-  };
+export interface QueryResult {
+  answer: string;
+  language: string;
+  citations: Citation[];
+  source_documents: SourceDocument[];
+  confidence: "high" | "medium" | "low";
 }
 
-export interface Violation {
-  code: string;
-  name: string;
-  vehicle_types: string[];
+export interface RightsResult {
+  location: LocationInfo;
+  documents_required: string[];
+  cop_can_demand: string[];
+  cop_cannot_demand: string[];
+  dispute_process: string;
+  payment_portal_url: string;
 }
 
-export async function getViolations(country: string, state: string): Promise<Violation[]> {
-  if (!USE_MOCK) {
-    const res = await fetch(`${API_BASE}/api/violations`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ country, state })
-    });
-    if (!res.ok) throw new Error("API failed");
-    return res.json();
-  }
+export interface VerifyResult {
+  is_correct: boolean;
+  actual_amount: number;
+  amount_told: number;
+  difference: number;
+  currency: string;
+  verdict: "correct" | "overcharged" | "undercharged" | "unknown_violation";
+  explanation: string;
+}
 
-  await delay(800);
+export interface ViolationItem {
+  violation_code: string;
+  violation_name: string;
+  vehicle_type: string;
+  fine_first: number;
+  fine_repeat: number;
+  section_reference: string;
+  compoundable: boolean;
+  severity: string;
+}
 
-  if (country === "India") {
-    return [
-      { code: "V01", name: "Driving without Helmet", vehicle_types: ["2 Wheeler"] },
-      { code: "V02", name: "Over-speeding", vehicle_types: ["2 Wheeler", "Car", "Commercial"] },
-      { code: "V03", name: "Drunk Driving", vehicle_types: ["2 Wheeler", "Car", "Commercial"] },
-      { code: "V04", name: "Jumping Red Light", vehicle_types: ["2 Wheeler", "Car", "Commercial"] },
-      { code: "V05", name: "Driving without Seatbelt", vehicle_types: ["Car"] },
-      { code: "V06", name: "Using Mobile while Driving", vehicle_types: ["2 Wheeler", "Car", "Commercial"] },
-      { code: "V07", name: "No Valid Insurance", vehicle_types: ["2 Wheeler", "Car", "Commercial"] },
-      { code: "V08", name: "Overloading", vehicle_types: ["Commercial"] },
-    ];
-  }
-  return [];
+export interface ViolationsResult {
+  country: string;
+  state: string;
+  currency: string;
+  violations: ViolationItem[];
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+
+async function post<T>(path: string, body: unknown): Promise<T> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`API error ${res.status}: ${path}`);
+  return res.json() as Promise<T>;
+}
+
+async function get<T>(path: string, params: Record<string, string>): Promise<T> {
+  const qs = new URLSearchParams(params).toString();
+  const res = await fetch(`${API_BASE}${path}?${qs}`);
+  if (!res.ok) throw new Error(`API error ${res.status}: ${path}`);
+  return res.json() as Promise<T>;
+}
+
+// ── API functions ──────────────────────────────────────────────────────────
+
+export async function queryChat(
+  question: string,
+  language: string = "en",
+  location_hint?: string
+): Promise<QueryResult> {
+  return post<QueryResult>("/api/query", { question, language, location_hint });
+}
+
+export async function calculateChallan(
+  location: string,
+  violation: string,
+  vehicle_type: string,
+  is_repeat: boolean = false,
+  language: string = "en"
+): Promise<ChallanResult> {
+  return post<ChallanResult>("/api/challan", {
+    location,
+    violation,
+    vehicle_type,
+    is_repeat,
+    language,
+  });
+}
+
+export async function getRights(location: string): Promise<RightsResult> {
+  return get<RightsResult>("/api/rights", { location });
+}
+
+export async function verifyFine(
+  location: string,
+  violation: string,
+  vehicle_type: string,
+  amount_told: number,
+  currency: string = "INR"
+): Promise<VerifyResult> {
+  return post<VerifyResult>("/api/verify-fine", {
+    location,
+    violation,
+    vehicle_type,
+    amount_told,
+    currency,
+  });
+}
+
+export async function getViolations(
+  country: string,
+  state: string
+): Promise<ViolationsResult> {
+  return get<ViolationsResult>("/api/violations", { country, state });
 }

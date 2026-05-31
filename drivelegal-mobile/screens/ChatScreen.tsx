@@ -8,8 +8,10 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { queryChat } from '../src/lib/api';
 
 const COLORS = {
   background: '#0b1326',
@@ -22,7 +24,16 @@ const COLORS = {
   botBubble: 'rgba(45, 52, 73, 0.6)',
 };
 
-const INITIAL_MESSAGES = [
+interface Message {
+  id: string;
+  role: 'user' | 'bot';
+  content: string;
+  timestamp: string;
+  citation?: string;
+  confidence?: 'high' | 'medium' | 'low';
+}
+
+const INITIAL_MESSAGES: Message[] = [
   {
     id: '1',
     role: 'bot',
@@ -32,33 +43,43 @@ const INITIAL_MESSAGES = [
 ];
 
 export default function ChatScreen() {
-  const [messages, setMessages] = useState(INITIAL_MESSAGES);
+  const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
   const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const sendMessage = () => {
-    if (!input.trim()) return;
+  const sendMessage = async () => {
+    const question = input.trim();
+    if (!question || loading) return;
     
-    const userMsg = {
+    const userMsg: Message = {
       id: Date.now().toString(),
       role: 'user',
-      content: input,
+      content: question,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
 
-    setMessages([...messages, userMsg]);
+    setMessages(prev => [...prev, userMsg]);
     setInput('');
+    setLoading(true);
+    setError(null);
 
-    // Mock bot response
-    setTimeout(() => {
-      const botMsg = {
+    try {
+      const result = await queryChat(question);
+      const botMsg: Message = {
         id: (Date.now() + 1).toString(),
         role: 'bot',
-        content: "Under Section 129 of the Motor Vehicles Act, wearing a helmet is mandatory for all riders. Failure to do so can result in a fine or license suspension.",
-        citation: 'MV Act Section 129',
+        content: result.answer,
+        citation: result.citations && result.citations.length > 0 ? result.citations[0].section : undefined,
+        confidence: result.confidence,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
       setMessages(prev => [...prev, botMsg]);
-    }, 1000);
+    } catch (e) {
+      setError('Failed to get a response. Check your connection.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -88,6 +109,13 @@ export default function ChatScreen() {
               ]}
             >
               <Text style={styles.messageText}>{msg.content}</Text>
+              
+              {msg.role === 'bot' && msg.confidence === 'low' && (
+                <Text style={styles.caveat}>
+                  Low confidence — verify with official sources.
+                </Text>
+              )}
+
               {msg.citation && (
                 <View style={styles.citationBadge}>
                   <Ionicons name="document-text-outline" size={12} color={COLORS.primary} />
@@ -98,6 +126,8 @@ export default function ChatScreen() {
             <Text style={styles.timestamp}>{msg.timestamp}</Text>
           </View>
         ))}
+        {loading && <ActivityIndicator style={styles.spinner} color={COLORS.primary} />}
+        {error && <Text style={styles.errorText}>{error}</Text>}
       </ScrollView>
 
       <View style={styles.inputArea}>
@@ -108,9 +138,15 @@ export default function ChatScreen() {
             placeholderTextColor={COLORS.textVariant}
             value={input}
             onChangeText={setInput}
+            onSubmitEditing={sendMessage}
+            editable={!loading}
           />
-          <TouchableOpacity style={styles.sendButton} onPress={sendMessage}>
-            <Ionicons name="send" size={20} color="#fff" />
+          <TouchableOpacity style={styles.sendButton} onPress={sendMessage} disabled={loading}>
+            {loading ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <Ionicons name="send" size={20} color="#fff" />
+            )}
           </TouchableOpacity>
         </View>
       </View>
@@ -213,7 +249,6 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderWidth: 1,
     borderColor: COLORS.border,
-    backdropFilter: 'blur(10px)', // Note: backdropFilter doesn't work out of the box in RN, but we use semi-transparent bg
   },
   input: {
     flex: 1,
@@ -228,5 +263,19 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  caveat: {
+    color: '#f59e0b',
+    fontSize: 12,
+    marginTop: 4,
+  },
+  spinner: {
+    marginTop: 12,
+    alignSelf: 'center',
+  },
+  errorText: {
+    color: '#ef4444',
+    textAlign: 'center',
+    marginTop: 8,
   },
 });

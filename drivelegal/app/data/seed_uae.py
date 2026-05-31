@@ -60,16 +60,31 @@ ROWS = [
     ),
     _row(
         violation_code="wrong_way", violation_name="Entering a road in the wrong direction",
-        fine_first=1000, fine_repeat=1000,
+        fine_first=600, fine_repeat=600,  # https://gulfnews.com/guides/life/all-138-uae-traffic-violations-fines-and-black-points-1.1546486
         section_reference="Federal Traffic Law (UAE)",
         compoundable=1, severity="serious",
-        notes="AED 1,000 + 10 black points + 30-day impound.",
+        notes="AED 600 + 4 black points + 7-day vehicle retention.",
     ),
     _row(
         violation_code="no_insurance", violation_name="Driving without valid insurance",
         fine_first=500, fine_repeat=500,
         section_reference="Federal Traffic Law (UAE)",
         compoundable=1, severity="serious",
+    ),
+    _row(
+        violation_code="no_helmet", violation_name="Riding motorcycle without helmet",
+        vehicle_type="two_wheeler",
+        fine_first=500, fine_repeat=500,  # https://gulfnews.com/guides/life/all-138-uae-traffic-violations-fines-and-black-points-1.1546486
+        section_reference="Federal Traffic Law (UAE)",
+        compoundable=1, severity="minor",
+        notes="AED 500 + 4 black points; applies to both driver and passenger.",
+    ),
+    _row(
+        violation_code="no_licence", violation_name="Driving without a valid UAE licence",
+        fine_first=5000, fine_repeat=5000,  # https://www.excellencedriving.com/en/blogs/penalties-for-driving-without-a-license
+        section_reference="Federal Decree-Law No. 14 of 2024, Article on unlicensed driving",
+        compoundable=0, severity="serious",
+        notes="AED 5,000–50,000 + possible imprisonment under 2024 federal law.",
     ),
 ]
 

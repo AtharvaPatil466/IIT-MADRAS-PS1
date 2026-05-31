@@ -1,14 +1,22 @@
-"""Thin wrapper around the Anthropic SDK.
+"""LLM wrapper.
 
-When no API key is configured, returns a deterministic offline response built
-from the retrieved RAG chunks. This keeps the demo working without network /
-keys, and is also what the tests exercise.
+Production backend: Anthropic Claude — used when ANTHROPIC_API_KEY is set.
+Fallback backend: Ollama (local) — used during dev/demo when Anthropic is not configured.
+Final fallback: deterministic offline answer built from the retrieved RAG chunks.
+
+The module is named `claude_client` for routers that already import it; the
+public surface (`answer_with_rag`, `translate`) is unchanged. Strategy order:
+  Tier 1 — Anthropic (if anthropic_api_key is set and non-empty)
+  Tier 2 — Ollama (if Anthropic is not configured or fails)
+  Tier 3 — Offline deterministic answer (if Ollama also fails)
 """
 
 from __future__ import annotations
 
 import logging
 from typing import Optional
+
+import httpx
 
 from app.config import settings
 
@@ -28,14 +36,16 @@ Rules:
 """
 
 
-def _build_prompt(question: str, location: Optional[str], chunks: list[dict]) -> str:
+def _build_user_prompt(question: str, location: Optional[str], chunks: list[dict]) -> str:
     parts = []
     if location:
         parts.append(f"User location: {location}")
     if chunks:
         parts.append("Context from legal database:")
         for c in chunks:
-            parts.append(f"- [{c.get('section','?')}] {c.get('title','')}\n  {c.get('text','')}")
+            parts.append(
+                f"- [{c.get('section','?')}] {c.get('title','')}\n  {c.get('text','')}"
+            )
     else:
         parts.append("Context from legal database: (no matching documents)")
     parts.append(f"\nUser question: {question}")
@@ -60,54 +70,105 @@ def _offline_answer(question: str, location: Optional[str], chunks: list[dict]) 
     )
 
 
+def _anthropic_chat(system: str, user: str) -> Optional[str]:
+    """Call Anthropic Messages API with prompt caching on the system prompt.
+
+    Returns None if not configured or if the call fails, so callers can fall back.
+    """
+    if not settings.anthropic_api_key:
+        return None
+    try:
+        import anthropic  # noqa: PLC0415  (local import keeps startup fast when key absent)
+
+        client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
+        resp = client.messages.create(
+            model=settings.claude_model,
+            max_tokens=600,
+            system=[
+                {
+                    "type": "text",
+                    "text": system,
+                    "cache_control": {"type": "ephemeral"},
+                }
+            ],
+            messages=[{"role": "user", "content": user}],
+        )
+        return (resp.content[0].text if resp.content else "").strip() or None
+    except Exception as e:
+        log.warning("Anthropic call failed (%s): %s", type(e).__name__, e)
+        return None
+
+
+def _ollama_chat(system: str, user: str) -> Optional[str]:
+    """Call Ollama's /api/chat. Returns None on any failure so callers can fall back."""
+    url = f"{settings.ollama_base_url.rstrip('/')}/api/chat"
+    payload = {
+        "model": settings.ollama_model,
+        "stream": False,
+        "messages": [
+            {"role": "system", "content": system},
+            {"role": "user", "content": user},
+        ],
+        "options": {"temperature": 0.2, "num_predict": 600},
+    }
+    try:
+        r = httpx.post(url, json=payload, timeout=settings.ollama_timeout_s)
+        r.raise_for_status()
+        data = r.json()
+        # Ollama /api/chat returns {"message": {"role": "...", "content": "..."}, ...}
+        content = (data.get("message") or {}).get("content", "")
+        return content.strip() or None
+    except Exception as e:
+        log.warning("Ollama call failed (%s): %s", type(e).__name__, e)
+        return None
+
+
+def _llm_chat(system: str, user: str) -> Optional[str]:
+    """3-tier LLM dispatch: Anthropic → Ollama → None."""
+    # Tier 1: Anthropic (production)
+    if settings.anthropic_api_key:
+        out = _anthropic_chat(system, user)
+        if out is not None:
+            return out
+        log.warning("Falling through from Anthropic to Ollama")
+
+    # Tier 2: Ollama (local dev)
+    out = _ollama_chat(system, user)
+    if out is not None:
+        return out
+
+    # Tier 3: caller handles offline fallback
+    log.warning("Falling through from Ollama to offline fallback")
+    return None
+
+
 def answer_with_rag(
     question: str,
     chunks: list[dict],
     location: Optional[str] = None,
     language: str = "en",
 ) -> str:
-    """Return a grounded answer string. Uses Claude if key configured, else offline."""
-    if not settings.anthropic_api_key:
-        return _offline_answer(question, location, chunks)
-
-    try:
-        import anthropic
-    except ImportError:
-        log.warning("anthropic SDK not installed; using offline answer")
-        return _offline_answer(question, location, chunks)
-
-    client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
-    user_msg = _build_prompt(question, location, chunks)
+    """Return a grounded answer string. Uses Anthropic if configured, then Ollama, then offline."""
+    user_msg = _build_user_prompt(question, location, chunks)
     if language == "hi":
-        user_msg += "\n\nReply in Hindi (Devanagari script)."
+        user_msg += "\n\nReply in Hindi (Devanagari script). Do not use English."
+    else:
+        user_msg += "\n\nReply in English. Do not use Hindi or any other language."
 
-    try:
-        msg = client.messages.create(
-            model=settings.claude_model,
-            max_tokens=600,
-            system=SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": user_msg}],
-        )
-        # Concatenate text blocks.
-        return "".join(b.text for b in msg.content if getattr(b, "type", None) == "text").strip()
-    except Exception as e:  # pragma: no cover
-        log.exception("Claude call failed: %s", e)
-        return _offline_answer(question, location, chunks)
+    out = _llm_chat(SYSTEM_PROMPT, user_msg)
+    if out:
+        return out
+    return _offline_answer(question, location, chunks)
 
 
 def translate(text: str, target_lang: str) -> str:
-    """Translate text to target language (en/hi). No-op if same or no key."""
-    if target_lang == "en" or not settings.anthropic_api_key:
+    """Translate text to target language (en/hi). No-op for English."""
+    if target_lang == "en" or not text:
         return text
-    try:
-        import anthropic
-        client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
-        msg = client.messages.create(
-            model=settings.claude_model,
-            max_tokens=600,
-            system="Translate the user's text to Hindi (Devanagari). Output only the translation, no preface.",
-            messages=[{"role": "user", "content": text}],
-        )
-        return "".join(b.text for b in msg.content if getattr(b, "type", None) == "text").strip()
-    except Exception:  # pragma: no cover
-        return text
+
+    system = (
+        "Translate the user's text to Hindi (Devanagari script). "
+        "Output only the translation — no preface, no quotes, no explanation."
+    )
+    out = _llm_chat(system, text)
+    return out or text

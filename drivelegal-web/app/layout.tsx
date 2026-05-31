@@ -2,6 +2,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { LangProvider } from "@/components/LangContext";
 import { Header } from "@/components/Header";
+import { RegisterSW } from "@/components/RegisterSW";
 
 export const metadata: Metadata = {
   title: "DriveLegal — Know your fine. Know your rights.",
@@ -13,6 +14,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className="min-h-screen bg-paper text-ink">
         <LangProvider>
+          <RegisterSW />
           <Header />
           <main className="mx-auto max-w-5xl px-5 py-8">{children}</main>
           <footer className="border-t border-line mt-12">

@@ -166,6 +166,12 @@ function VerdictCard({ r, lang }: { r: VerifyResponse; lang: "en" | "hi" }) {
 
   return (
     <Card className="space-y-4">
+      {r.__offline && (
+        <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800">
+          <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+          {lang === "hi" ? "ऑफलाइन मोड — डेटा थोड़ा पुराना हो सकता है" : "Offline mode — data may be slightly stale"}
+        </div>
+      )}
       <div className="flex items-center gap-3">
         <Badge tone={tone}>{label.toUpperCase()}</Badge>
         {r.verdict === "overcharged" && (

@@ -70,6 +70,13 @@ ROWS = [
         section_reference="Road Traffic Act 1988 s.47",
         compoundable=1, severity="minor",
     ),
+    _row(
+        violation_code="no_licence", violation_name="Driving otherwise than in accordance with a licence",
+        fine_first=1000, fine_repeat=1000,  # https://www.highwaycodeuk.co.uk/penalty-table.html
+        section_reference="Road Traffic Act 1988 s.87",
+        compoundable=1, severity="serious",
+        notes="Up to £1,000 fine + 3-6 penalty points (IN10). Discretionary disqualification.",
+    ),
 ]
 
 

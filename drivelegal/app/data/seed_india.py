@@ -36,12 +36,12 @@ NATIONAL = [
     ),
     _row(
         violation_code="mobile_use", violation_name="Using mobile while driving",
-        fine_first=1500, fine_repeat=5000,
+        fine_first=5000, fine_repeat=10000,  # https://www.acko.com/car-guide/what-is-section-184-of-the-motor-vehicle-act/
         section_reference="MV Act Section 184", compoundable=1, severity="serious",
     ),
     _row(
         violation_code="red_light", violation_name="Jumping a red light",
-        fine_first=1000, fine_repeat=5000,
+        fine_first=5000, fine_repeat=10000,  # https://www.acko.com/car-guide/what-is-section-184-of-the-motor-vehicle-act/
         section_reference="MV Act Section 184", compoundable=1, severity="serious",
     ),
     _row(
@@ -68,7 +68,7 @@ NATIONAL = [
     ),
     _row(
         violation_code="wrong_side", violation_name="Driving on the wrong side",
-        fine_first=1000, fine_repeat=5000,
+        fine_first=5000, fine_repeat=10000,  # https://www.acko.com/car-guide/what-is-section-184-of-the-motor-vehicle-act/
         section_reference="MV Act Section 184", compoundable=1, severity="serious",
     ),
     _row(
